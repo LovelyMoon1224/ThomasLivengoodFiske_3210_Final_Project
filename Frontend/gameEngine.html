@@ -1,0 +1,50 @@
+  <html>
+  <head>
+    <title>Almost Minecraft Creative Mode</title>
+  </head>
+  <body>
+    <!-- Three.js Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "simplex-noise": "https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/+esm"
+        }
+      }
+    </script>
+
+    <script type="module">
+      const scene = new THREE.Scene();
+
+      // Initialize renderer
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setClearColor(0x111111, 1.0); // Dark grey background
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      document.body.appendChild(renderer.domElement);
+
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      const testLight = new THREE.AmbientLight(0xffffff, 1.0);
+      scene.add(testLight);
+
+      const playerCamera = new THREE.PerspectiveCamera(
+        35,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      playerCamera.position.set(0, 0, 500); // Position the camera along the +Z axis
+      playerCamera.lookAt(new THREE.Vector3(1, 0, 0));
+      scene.add(playerCamera);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, playerCamera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
