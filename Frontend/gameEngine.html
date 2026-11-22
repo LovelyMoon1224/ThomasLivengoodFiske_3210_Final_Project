@@ -1,6 +1,6 @@
   <html>
   <head>
-    <title>Almost Minecraft Creative Mode</title>
+    <title>Howdy Lil Lady</title>
   </head>
   <body>
     <!-- Three.js Dependencies -->
@@ -14,74 +14,102 @@
     </script>
 
     <script type="module">
-      const scene = new THREE.Scene();
+        const scene = new THREE.Scene();
 
       // Initialize renderer
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setClearColor(0x111111, 1.0); // Dark grey background
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(window.devicePixelRatio);
-      document.body.appendChild(renderer.domElement);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setClearColor(0x111111, 1.0); // Dark grey background
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
 
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-      const testLight = new THREE.AmbientLight(0xffffff, 1.0);
-      scene.add(testLight);
+        const testLight = new THREE.AmbientLight(0xffffff, 1.0);
+        scene.add(testLight);
 
-      const geometry = new THREE.BoxGeometry(10,10,10);
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00});
-      const box = new THREE.Mesh(geometry, material);
-      scene.add(box);
+        const geometry = new THREE.BoxGeometry(10,10,10);
+        const material1 = new THREE.MeshBasicMaterial({ color: 0x00ff00});
+        const material2 = new THREE.MeshBasicMaterial({ color: 0xffff00});
+        const playerOneBox = new THREE.Mesh(geometry, material1);
+        const playerTwoBox = new THREE.Mesh(geometry, material2);
+        scene.add(playerOneBox);
+        scene.add(playerTwoBox);
 
-      const camera = new THREE.PerspectiveCamera(
-        35,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-      );
-      camera.position.set(0, 0, 500); // Position the camera along the +Z axis
-      camera.lookAt(new THREE.Vector3(1, 0, 0));
-      scene.add(camera);
+        const ws = new WebSocket('ws://localhost:8080');
+        let myId = null;
 
-      let aPressed = false;
-      let dPressed = false;
+        let localBox = playerOneBox;
+        let remoteBox = playerTwoBox;
 
-    document.addEventListener("keydown", function(event) {
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
 
-      if(event.key === "a") {
-          aPressed = true;
-      }
-      if(event.key === "d") {
-          dPressed = true;
-      }
-    });
+            if (msg.type === 'init') {
+                myId = msg.id;
+                console.log('I am player', myId);
 
-    document.addEventListener("keyup", function(event) {
+                if (myId === 1) {
+                    localBox = playerTwoBox;
+                    remoteBox = playerOneBox;
+                }
+            }
+            if (msg.type === 'msg') {
+                const pos = JSON.parse(msg.data);
+                remoteBox.position.x = pos.x;
+            }
+        };
 
-      if(event.key === "a") {
-          aPressed = false;
-      }
-      if(event.key === "d") {
-          dPressed = false;
-      }
-    });
+        const camera = new THREE.PerspectiveCamera(
+            35,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(0, 0, 500); // Position the camera along the +Z axis
+        camera.lookAt(new THREE.Vector3(1, 0, 0));
+        scene.add(camera);
 
-      function boxMovement(a,d) {
-        if (a) {
-            box.position.x -=2;
+        let aPressed = false;
+        let dPressed = false;
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "a") {
+                aPressed = true;
+            }   
+            if (event.key === "d") {
+                dPressed = true;
+            }
+        });
+
+        document.addEventListener("keyup", function(event) {
+            if (event.key === "a") {
+                aPressed = false;
+            }
+            if (event.key === "d") {
+                dPressed = false;
+            }
+        });
+
+        function boxMovement(a, d) {
+            if (a) {
+                localBox.position.x -= 2;
+            }
+            if (d) {
+                localBox.position.x += 2;
+            }
         }
-        if (d) {
-            box.position.x +=2;
-        }
-      }
 
-      function animate() {
-        requestAnimationFrame(animate);
-        
-        boxMovement(aPressed, dPressed);
+        function animate() {
+            requestAnimationFrame(animate);
+            boxMovement(aPressed, dPressed);
 
-        renderer.render(scene, camera);
+            if (ws.readyState === WebSocket.OPEN && myId !== null && myId < 3) {
+                ws.send(JSON.stringify({ x: localBox.position.x }));
+            }
+
+            renderer.render(scene, camera);
       }
 
       animate();
