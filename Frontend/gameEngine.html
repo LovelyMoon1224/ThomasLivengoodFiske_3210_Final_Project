@@ -29,19 +29,59 @@
       const testLight = new THREE.AmbientLight(0xffffff, 1.0);
       scene.add(testLight);
 
-      const playerCamera = new THREE.PerspectiveCamera(
+      const geometry = new THREE.BoxGeometry(10,10,10);
+      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00});
+      const box = new THREE.Mesh(geometry, material);
+      scene.add(box);
+
+      const camera = new THREE.PerspectiveCamera(
         35,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
       );
-      playerCamera.position.set(0, 0, 500); // Position the camera along the +Z axis
-      playerCamera.lookAt(new THREE.Vector3(1, 0, 0));
-      scene.add(playerCamera);
+      camera.position.set(0, 0, 500); // Position the camera along the +Z axis
+      camera.lookAt(new THREE.Vector3(1, 0, 0));
+      scene.add(camera);
+
+      let aPressed = false;
+      let dPressed = false;
+
+    document.addEventListener("keydown", function(event) {
+
+      if(event.key === "a") {
+          aPressed = true;
+      }
+      if(event.key === "d") {
+          dPressed = true;
+      }
+    });
+
+    document.addEventListener("keyup", function(event) {
+
+      if(event.key === "a") {
+          aPressed = false;
+      }
+      if(event.key === "d") {
+          dPressed = false;
+      }
+    });
+
+      function boxMovement(a,d) {
+        if (a) {
+            box.position.x -=2;
+        }
+        if (d) {
+            box.position.x +=2;
+        }
+      }
 
       function animate() {
         requestAnimationFrame(animate);
-        renderer.render(scene, playerCamera);
+        
+        boxMovement(aPressed, dPressed);
+
+        renderer.render(scene, camera);
       }
 
       animate();
