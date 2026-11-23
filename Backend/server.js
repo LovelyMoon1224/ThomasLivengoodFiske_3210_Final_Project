@@ -1,8 +1,8 @@
 const { WebSocketServer } = require('ws');
 let nextId = 0; //counts # of players online
 const clients = new Map(); // id -> ws
-const wss = new WebSocketServer({ port: 8080, host: '0.0.0.0' });
-console.log('Server listening on port 8080');
+const wss = new WebSocketServer({ port: 5551, host: '0.0.0.0' });
+console.log('Server listening on port 5551');
 
 wss.on('connection', (ws) => {
   const id = nextId++;
